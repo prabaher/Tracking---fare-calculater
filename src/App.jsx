@@ -25,13 +25,11 @@ import {
   X,
   Trash2,
   History,
-  ExternalLink,
-  Code2,
-  Settings,
   Flag,
   ArrowRight
 } from 'lucide-react';
 import './App.css';
+import { GOOGLE_SCRIPT_URL } from './config';
 
 // Earth's radius in kilometers for Haversine calculation
 const EARTH_RADIUS_KM = 6371;
@@ -138,41 +136,6 @@ function formatCurrency(amount) {
   }).format(num);
 }
 
-// Ready-to-copy Google Apps Script Code
-const APPS_SCRIPT_SNIPPET = `function doPost(e) {
-  try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    if (!ss) {
-      return ContentService.createTextOutput(JSON.stringify({status: "error", message: "Open Apps Script inside your Google Sheet via Extensions -> Apps Script."})).setMimeType(ContentService.MimeType.JSON);
-    }
-    var sheet = ss.getActiveSheet();
-    if (sheet.getLastRow() === 0) {
-      sheet.appendRow(["Timestamp", "Date", "Time", "Starting Location", "Ending Location", "Distance (km)", "Rate (₹/km)", "Total Fare (₹)", "Duration", "Tracking Mode"]);
-      sheet.getRange(1, 1, 1, 10).setBackground("#08783F").setFontColor("#FFFFFF").setFontWeight("bold");
-      sheet.setFrozenRows(1);
-    }
-    var data = {};
-    if (e && e.postData && e.postData.contents) {
-      try { data = JSON.parse(e.postData.contents); } catch(err) { data = e.parameter || {}; }
-    } else if (e && e.parameter) {
-      data = e.parameter;
-    }
-    var now = new Date();
-    sheet.appendRow([now, data.date || Utilities.formatDate(now, "Asia/Kolkata", "dd/MM/yyyy"), data.time || Utilities.formatDate(now, "Asia/Kolkata", "hh:mm:ss a"), data.startLocation || "-", data.endLocation || "-", data.distance || "0 km", data.rate || "₹20/km", data.amount || "₹0", data.duration || "00:00:00", data.trackingMode || "Manual"]);
-    return ContentService.createTextOutput(JSON.stringify({status: "success"})).setMimeType(ContentService.MimeType.JSON);
-  } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({status: "error", error: err.toString()})).setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-function doGet(e) {
-  return ContentService.createTextOutput(JSON.stringify({status: "active"})).setMimeType(ContentService.MimeType.JSON);
-}
-
-function testRun() {
-  doPost({ postData: { contents: JSON.stringify({ distance: "1.00 km", amount: "₹20.00", startLocation: "Start", endLocation: "Stop" }) } });
-}`;
-
 export default function App() {
   // --- Core Calculator State ---
   const [distance, setDistance] = useState(1.0);
@@ -199,10 +162,6 @@ export default function App() {
   const [endLocation, setEndLocation] = useState('');
   const [saveButtonState, setSaveButtonState] = useState('idle'); // 'idle' | 'saving' | 'saved' | 'error'
   const [saveToast, setSaveToast] = useState(null); // { type: 'success' | 'warning' | 'error', message: string }
-  const [showSettingsDrawer, setShowSettingsDrawer] = useState(false);
-  const [sheetsUrl, setSheetsUrl] = useState(() => {
-    return localStorage.getItem('kilofare_sheets_url') || '';
-  });
   const [isSaving, setIsSaving] = useState(false);
   const [savedTrips, setSavedTrips] = useState(() => {
     try {
@@ -212,8 +171,6 @@ export default function App() {
     }
   });
   const [showSavedHistory, setShowSavedHistory] = useState(false);
-  const [showAppsScriptGuide, setShowAppsScriptGuide] = useState(false);
-  const [scriptCopied, setScriptCopied] = useState(false);
 
   // Pre-detect current location on initial mount if browser geolocation is available
   useEffect(() => {
@@ -279,10 +236,7 @@ export default function App() {
     };
   }, [isTracking]);
 
-  // Save sheets URL to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('kilofare_sheets_url', sheetsUrl);
-  }, [sheetsUrl]);
+
 
   // Save trips history to localStorage
   useEffect(() => {
@@ -539,16 +493,26 @@ Generated with KiloFare Calculator • Karumbukkadai Delivery Pasanga`;
     }
   };
 
-  // --- Direct 1-Click Save to Google Sheets (No Dialog Box) ---
+  // --- Direct 1-Click Save to Google Sheets ---
   const handleDirectSaveToSheets = async () => {
     if (isSaving) return;
 
-    if (!sheetsUrl || !sheetsUrl.trim()) {
-      setShowSettingsDrawer(true);
+    const endpoint = (GOOGLE_SCRIPT_URL || '').trim();
+    const isUnconfigured =
+      !endpoint ||
+      endpoint === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE' ||
+      endpoint.includes('PASTE_YOUR_') ||
+      endpoint.includes('YOUR_DEPLOYED_URL') ||
+      !endpoint.startsWith('https://script.google.com/macros/s/') ||
+      !endpoint.endsWith('/exec');
+
+    if (isUnconfigured) {
+      setSaveButtonState('error');
       setSaveToast({
         type: 'warning',
-        message: 'Please paste your Google Apps Script Web App URL below first to enable 1-click saving.',
+        message: 'Google Apps Script endpoint not configured. Please paste your deployed Web App URL ending with /exec in src/config.js.',
       });
+      setTimeout(() => setSaveButtonState('idle'), 4000);
       return;
     }
 
@@ -616,52 +580,82 @@ Generated with KiloFare Calculator • Karumbukkadai Delivery Pasanga`;
     };
 
     try {
-      await fetch(sheetsUrl.trim(), {
+      const response = await fetch(endpoint, {
         method: 'POST',
-        mode: 'no-cors',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'text/plain;charset=utf-8',
         },
         body: JSON.stringify(tripRecord),
       });
 
-      // Record to local history
-      setSavedTrips((prev) => [tripRecord, ...prev]);
-      setSaveButtonState('saved');
-      setSaveToast({
-        type: 'success',
-        message: `✓ Saved to Google Sheet: ${finalStart} ➔ ${finalEnd} • ₹${formatCurrency(totalFare)}`,
-      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status} ${response.statusText}`);
+      }
 
-      setTimeout(() => {
-        setSaveButtonState('idle');
-        setIsSaving(false);
-      }, 2600);
+      const responseText = await response.text();
+      let responseData = {};
+      try {
+        responseData = JSON.parse(responseText);
+      } catch {
+        responseData = { status: 'unknown', raw: responseText };
+      }
 
-      setTimeout(() => {
-        setSaveToast(null);
-      }, 5000);
+      if (responseData.status === 'success') {
+        // Record to local history on genuine confirmed save
+        setSavedTrips((prev) => [tripRecord, ...prev]);
+        setSaveButtonState('saved');
+        setSaveToast({
+          type: 'success',
+          message: `✓ Saved to Google Sheet: ${finalStart} ➔ ${finalEnd} • ₹${formatCurrency(totalFare)}`,
+        });
+
+        setTimeout(() => {
+          setSaveButtonState('idle');
+          setIsSaving(false);
+        }, 2600);
+
+        setTimeout(() => {
+          setSaveToast(null);
+        }, 5000);
+      } else {
+        // Non-success response from Apps Script
+        const errorMsg = responseData.message || responseData.error || 'Server did not confirm save.';
+        console.error('Google Sheets Apps Script reported error:', responseData);
+        setSavedTrips((prev) => [tripRecord, ...prev]);
+        setSaveButtonState('error');
+        setSaveToast({
+          type: 'error',
+          message: `Notice: Saved locally, but Google Sheet reported: ${errorMsg}`,
+        });
+        setTimeout(() => {
+          setSaveButtonState('idle');
+          setIsSaving(false);
+        }, 4000);
+      }
     } catch (err) {
       console.error('Save to Google Sheets failed:', err);
+      // Save locally so user does not lose their trip calculations
       setSavedTrips((prev) => [tripRecord, ...prev]);
       setSaveButtonState('error');
+
+      const isNetworkOrCors =
+        err?.name === 'TypeError' ||
+        err?.message?.includes('Failed to fetch') ||
+        err?.message?.includes('NetworkError');
+
+      const message = isNetworkOrCors
+        ? 'Could not connect to Google Apps Script. Saved locally. Ensure your Web App is deployed with "Who has access: Anyone".'
+        : `Save failed (${err?.message || 'Network error'}). Saved locally.`;
+
       setSaveToast({
         type: 'error',
-        message: 'Notice: Network warning. Saved locally. Please ensure Web App access is set to "Anyone".',
+        message,
       });
+
       setTimeout(() => {
         setSaveButtonState('idle');
         setIsSaving(false);
-      }, 3000);
-    }
-  };
-
-  const copyAppsScript = () => {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(APPS_SCRIPT_SNIPPET).then(() => {
-        setScriptCopied(true);
-        setTimeout(() => setScriptCopied(false), 2500);
-      });
+      }, 4000);
     }
   };
 
@@ -1028,16 +1022,7 @@ Generated with KiloFare Calculator • Karumbukkadai Delivery Pasanga`;
                 )}
               </button>
 
-              <button
-                type="button"
-                id="btn-sheet-settings"
-                className={`btn-secondary btn-settings-toggle ${showSettingsDrawer ? 'is-active' : ''}`}
-                onClick={() => setShowSettingsDrawer((prev) => !prev)}
-                title="Configure Google Apps Script Web App URL"
-              >
-                <Settings size={16} />
-                <span>{showSettingsDrawer ? 'Close Settings' : 'Sheet URL'}</span>
-              </button>
+
 
               <button
                 type="button"
@@ -1085,95 +1070,7 @@ Generated with KiloFare Calculator • Karumbukkadai Delivery Pasanga`;
             </div>
           )}
 
-          {/* Google Sheets Settings Drawer (Expandable on demand) */}
-          {showSettingsDrawer && (
-            <div className="sheet-settings-drawer">
-              <div className="settings-drawer-header">
-                <div className="settings-title">
-                  <Settings size={18} className="text-primary" />
-                  <strong>Google Sheets Web App Settings</strong>
-                </div>
-                <button
-                  type="button"
-                  className="btn-close-drawer"
-                  onClick={() => setShowSettingsDrawer(false)}
-                  aria-label="Close settings"
-                >
-                  <X size={16} />
-                </button>
-              </div>
 
-              <p className="settings-subtitle">
-                Paste your Google Apps Script Web App URL below once. Every click on <strong>Save to Google Sheets</strong> will immediately write directly to your sheet without any popup dialog!
-              </p>
-
-              <div className="form-group settings-field">
-                <div className="form-label">
-                  <span>Google Apps Script Web App URL</span>
-                  <button
-                    type="button"
-                    className="btn-text-link"
-                    onClick={() => setShowAppsScriptGuide((prev) => !prev)}
-                  >
-                    <Code2 size={13} />
-                    <span>{showAppsScriptGuide ? 'Hide Setup Guide' : 'How to set up Apps Script?'}</span>
-                  </button>
-                </div>
-                <div className="input-wrapper">
-                  <span className="input-prefix">🔗</span>
-                  <input
-                    id="settings-sheets-url"
-                    type="url"
-                    value={sheetsUrl}
-                    onChange={(e) => setSheetsUrl(e.target.value)}
-                    placeholder="https://script.google.com/macros/s/.../exec"
-                    className="number-input with-prefix font-mono text-sm"
-                  />
-                </div>
-                <p className="helper-text">
-                  {sheetsUrl ? '✓ Web App URL active and ready. Saved automatically in browser.' : 'Paste the URL ending with /exec and set permissions to "Anyone".'}
-                </p>
-              </div>
-
-              {showAppsScriptGuide && (
-                <div className="apps-script-guide-panel">
-                  <div className="guide-steps-list">
-                    <div className="guide-step">
-                      <strong>1. Open Google Sheet</strong>
-                      <p>Go to <a href="https://sheets.new" target="_blank" rel="noreferrer">sheets.new <ExternalLink size={11} /></a></p>
-                    </div>
-                    <div className="guide-step">
-                      <strong>2. Open Apps Script</strong>
-                      <p>Click <code>Extensions</code> → <code>Apps Script</code></p>
-                    </div>
-                    <div className="guide-step">
-                      <strong>3. Paste Code &amp; Deploy</strong>
-                      <p>
-                        Paste the snippet below. Click <code>Deploy</code> → <code>New deployment</code> → Type: <code>Web app</code> → Set access to <strong>"Anyone"</strong> → Copy Web App URL.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="script-code-box">
-                    <div className="script-code-header">
-                      <span>Google Apps Script (doPost)</span>
-                      <button
-                        type="button"
-                        className="btn-copy-code"
-                        onClick={copyAppsScript}
-                      >
-                        {scriptCopied ? <Check size={13} /> : <Copy size={13} />}
-                        <span>{scriptCopied ? 'Copied Code!' : 'Copy Code'}</span>
-                      </button>
-                    </div>
-                    <pre className="script-code-snippet">
-                      <code>{APPS_SCRIPT_SNIPPET}</code>
-                    </pre>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
 
           {/* Auto-Detected Route & Locations Bar */}
           <div className="route-locations-display" aria-label="Trip Route Locations">

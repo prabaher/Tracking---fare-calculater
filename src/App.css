@@ -788,11 +788,6 @@
   border-color: var(--primary-700);
 }
 
-.btn-settings-toggle.is-active {
-  background-color: var(--bg-primary-soft);
-  border-color: var(--primary-700);
-  color: var(--primary-800);
-}
 
 .btn-reset {
   display: inline-flex;
@@ -871,55 +866,6 @@
   background: rgba(0, 0, 0, 0.06);
 }
 
-/* Google Sheets Settings Drawer */
-.sheet-settings-drawer {
-  background: #fbfdfc;
-  border: 2px solid var(--border-primary);
-  border-radius: var(--radius-lg);
-  padding: 1.25rem;
-  margin-bottom: 1.35rem;
-  animation: fadeIn 0.25s ease;
-}
-
-.settings-drawer-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
-}
-
-.settings-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.98rem;
-  color: var(--primary-800);
-}
-
-.btn-close-drawer {
-  color: var(--text-muted);
-  padding: 0.3rem;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-close-drawer:hover {
-  background-color: #e2e8f0;
-  color: var(--text-primary);
-}
-
-.settings-subtitle {
-  font-size: 0.82rem;
-  color: var(--text-secondary);
-  margin-bottom: 1rem;
-  line-height: 1.5;
-}
-
-.settings-field {
-  margin-bottom: 0.75rem;
-}
 
 /* Auto-Detected Route & Locations Display */
 .route-locations-display {
@@ -1393,78 +1339,7 @@
   font-size: 0.88rem !important;
 }
 
-/* Apps Script Setup Guide */
-.apps-script-guide-panel {
-  background-color: #f8fafc;
-  border: 1.5px solid #cbd5e1;
-  border-radius: var(--radius-md);
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-}
 
-.guide-steps-list {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.65rem;
-  font-size: 0.78rem;
-}
-
-.guide-step strong {
-  display: block;
-  color: var(--primary-800);
-  font-weight: 700;
-}
-
-.guide-step p {
-  color: var(--text-secondary);
-  margin-top: 0.1rem;
-}
-
-.guide-step code {
-  background: #e2e8f0;
-  padding: 0.1rem 0.35rem;
-  border-radius: 3px;
-  font-family: monospace;
-}
-
-.script-code-box {
-  background: #0f172a;
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-}
-
-.script-code-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.4rem 0.75rem;
-  background: #1e293b;
-  color: #94a3b8;
-  font-size: 0.72rem;
-  font-weight: 700;
-}
-
-.btn-copy-code {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  color: var(--accent-yellow);
-  font-size: 0.72rem;
-  font-weight: 700;
-}
-
-.script-code-snippet {
-  padding: 0.75rem;
-  margin: 0;
-  max-height: 120px;
-  overflow-y: auto;
-  font-family: monospace;
-  font-size: 0.72rem;
-  color: #38bdf8;
-  line-height: 1.4;
-}
 
 .modal-footer {
   padding: 1rem 1.5rem;

@@ -18,7 +18,7 @@
  * 8. Set "Execute as": "Me"
  * 9. Set "Who has access": "Anyone"  <--- CRITICAL! Must be "Anyone"
  * 10. Click "Deploy", authorize access, and copy the Web App URL (ends with /exec)
- * 11. Paste that URL into KiloFare's "Sheet URL" settings box!
+ * 11. Paste that URL into src/config.js as GOOGLE_SCRIPT_URL!
  */
 
 function doPost(e) {
@@ -110,6 +110,10 @@ function doPost(e) {
  * Health check endpoint - allows testing the Web App URL in browser
  */
 function doGet(e) {
+  // If parameters are passed in GET (e.g. testing or direct links), process the save
+  if (e && e.parameter && (e.parameter.distance || e.parameter.amount)) {
+    return doPost(e);
+  }
   return ContentService.createTextOutput(JSON.stringify({
     status: "active",
     message: "KiloFare Google Apps Script Web App is connected and running!"

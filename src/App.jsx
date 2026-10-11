@@ -26,7 +26,9 @@ import {
   Trash2,
   History,
   Flag,
-  ArrowRight
+  ArrowRight,
+  Sun,
+  Moon
 } from 'lucide-react';
 import './App.css';
 import { GOOGLE_SCRIPT_URL } from './config';
@@ -172,6 +174,32 @@ export default function App() {
   });
   const [showSavedHistory, setShowSavedHistory] = useState(false);
   const [mobileTab, setMobileTab] = useState('all'); // 'all' | 'distance' | 'fare' | 'summary'
+
+  // --- Soft Neomorph Theme State (Light / Dark) ---
+  const [theme, setTheme] = useState(() => {
+    try {
+      const saved = localStorage.getItem('kilofare_theme');
+      if (saved === 'dark' || saved === 'light') return saved;
+      const oldStyle = localStorage.getItem('kilofare_morphism_style');
+      if (oldStyle === 'dark-glass') return 'dark';
+      return 'light';
+    } catch {
+      return 'light';
+    }
+  });
+
+  useEffect(() => {
+    try {
+      document.documentElement.setAttribute('data-theme', theme);
+    } catch {}
+  }, [theme]);
+
+  const handleThemeChange = (newTheme) => {
+    setTheme(newTheme);
+    try {
+      localStorage.setItem('kilofare_theme', newTheme);
+    } catch {}
+  };
 
   // Pre-detect current location on initial mount if browser geolocation is available
   useEffect(() => {
@@ -706,7 +734,7 @@ Generated with KiloFare Calculator • Karumbukkadai Delivery Pasanga`;
   const statusBadge = getStatusBadge();
 
   return (
-    <div className="app-container">
+    <div className="app-container" data-theme={theme}>
       {/* 1. Header */}
       <header className="app-header">
         <div className="header-inner">
@@ -726,6 +754,30 @@ Generated with KiloFare Calculator • Karumbukkadai Delivery Pasanga`;
           </div>
 
           <div className="header-badge-container">
+            {/* Soft Neomorph Theme Switcher (Light / Dark) */}
+            <div className="theme-toggle-group" role="radiogroup" aria-label="Theme mode selector">
+              <button
+                type="button"
+                className={`theme-toggle-btn ${theme === 'light' ? 'active' : ''}`}
+                onClick={() => handleThemeChange('light')}
+                aria-label="Light mode"
+                title="Soft Neomorph Light"
+              >
+                <Sun size={14} className="theme-toggle-icon" />
+                <span className="theme-toggle-label">Light</span>
+              </button>
+              <button
+                type="button"
+                className={`theme-toggle-btn ${theme === 'dark' ? 'active' : ''}`}
+                onClick={() => handleThemeChange('dark')}
+                aria-label="Dark mode"
+                title="Soft Neomorph Dark"
+              >
+                <Moon size={14} className="theme-toggle-icon" />
+                <span className="theme-toggle-label">Dark</span>
+              </button>
+            </div>
+
             <div className={`status-pill ${statusBadge.className}`}>
               <span className={`status-indicator-dot ${statusBadge.dotClass}`} />
               <span className="status-pill-text">{statusBadge.label}</span>

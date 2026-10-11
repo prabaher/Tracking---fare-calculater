@@ -1,63 +1,93 @@
 /* ==========================================================================
    KiloFare - Design System Tokens & Base Setup
+   Pure Soft Neomorphic Aesthetic (Light & Dark Modes)
    ========================================================================== */
 
-:root {
+:root,
+[data-theme="light"] {
   /* Brand Theme Colors */
-  --primary-50: #f0fdf4;
-  --primary-100: #dcfce7;
-  --primary-200: #bbf7d0;
-  --primary-300: #86efac;
-  --primary-400: #4ade80;
-  --primary-500: #22c55e;
-  --primary-600: #16a34a;
+  --primary-50: #eef6f0;
+  --primary-100: #d7edd9;
+  --primary-200: #b5e0bb;
+  --primary-300: #86cb91;
+  --primary-400: #48b159;
+  --primary-500: #229938;
+  --primary-600: #13822d;
   --primary-700: #08783F;
   --primary-800: #075A32;
   --primary-900: #054425;
 
-  /* Accent Gold / Yellow */
-  --accent-yellow: #F9E21B;
-  --accent-yellow-hover: #ecd510;
-  --accent-yellow-dark: #8c7300;
+  /* Accent Gold / Amber */
+  --accent-yellow: #f59e0b;
+  --accent-yellow-hover: #d97706;
+  --accent-yellow-dark: #b45309;
   --accent-yellow-soft: #fefce8;
 
-  /* Neutrals & Surfaces */
-  --bg-page: #f6fbf7;
-  --bg-card: #FFFFFF;
-  --bg-card-subtle: #f9fdfa;
-  --bg-card-hover: #eef8f0;
-  --bg-primary-soft: #eaf7ed;
+  /* Soft Neomorph Light Surfaces */
+  --bg-page: #eaf1ec;
+  --bg-card: #eaf1ec;
+  --bg-card-subtle: #e2eae4;
+  --bg-card-hover: #edf4ef;
+  --bg-primary-soft: #dbe7dd;
 
   /* Typography Colors */
-  --text-primary: #142216;
-  --text-secondary: #364638;
-  --text-muted: #58695a;
-  --text-subtle: #829484;
+  --text-primary: #152418;
+  --text-secondary: #2f4332;
+  --text-muted: #59715d;
+  --text-subtle: #7e9683;
 
-  /* Borders */
-  --border-subtle: #d6ead8;
+  /* Neomorphic Shadows & Depth Tokens */
+  --neo-shadow-dark: #c4d2c6;
+  --neo-shadow-light: #ffffff;
+
+  --shadow-flat: 8px 8px 18px var(--neo-shadow-dark), -8px -8px 18px var(--neo-shadow-light);
+  --shadow-flat-lg: 12px 12px 26px var(--neo-shadow-dark), -12px -12px 26px var(--neo-shadow-light);
+  --shadow-flat-sm: 4px 4px 10px var(--neo-shadow-dark), -4px -4px 10px var(--neo-shadow-light);
+  --shadow-flat-xs: 2px 2px 5px var(--neo-shadow-dark), -2px -2px 5px var(--neo-shadow-light);
+  --shadow-inset: inset 4px 4px 8px var(--neo-shadow-dark), inset -4px -4px 8px var(--neo-shadow-light);
+  --shadow-inset-sm: inset 2px 2px 5px var(--neo-shadow-dark), inset -2px -2px 5px var(--neo-shadow-light);
+
+  /* Soft Highlights & Borders */
+  --border-subtle: rgba(255, 255, 255, 0.7);
+  --border-primary: #86cb91;
   --border-focus: #08783F;
-  --border-primary: #a7dfaf;
+
+  /* Component Surface Tokens */
+  --glass-bg: #eaf1ec;
+  --glass-bg-subtle: #e2eae4;
+  --glass-bg-hover: #edf4ef;
+  --glass-border: rgba(255, 255, 255, 0.85);
+  --glass-border-subtle: rgba(255, 255, 255, 0.65);
+  --glass-blur: none;
+  --glass-saturate: none;
+  --glass-shadow: var(--shadow-flat-lg);
+  --glass-shadow-hover: 14px 14px 30px var(--neo-shadow-dark), -14px -14px 30px var(--neo-shadow-light);
+  --glass-inner-highlight: inset 1px 1px 2px rgba(255, 255, 255, 0.8);
+  --glass-header-bg: #eaf1ec;
+  --glass-input-bg: #e2eae4;
+  --glass-fare-bg: #eaf1ec;
+  --glass-fare-border: rgba(255, 255, 255, 0.85);
+  --glass-fare-shadow: 10px 10px 22px var(--neo-shadow-dark), -10px -10px 22px var(--neo-shadow-light);
 
   /* Status Badges */
-  --status-green-bg: #e6f7ec;
+  --status-green-bg: #e2eae4;
   --status-green-text: #075A32;
-  --status-green-border: #a3e3b5;
+  --status-green-border: rgba(255, 255, 255, 0.75);
   --status-green-dot: #08783F;
 
-  --status-amber-bg: #fffde7;
-  --status-amber-text: #8c7300;
-  --status-amber-border: #f9e21b;
+  --status-amber-bg: #e2eae4;
+  --status-amber-text: #92400e;
+  --status-amber-border: rgba(255, 255, 255, 0.75);
   --status-amber-dot: #f59e0b;
 
-  --status-red-bg: #fef2f2;
+  --status-red-bg: #e2eae4;
   --status-red-text: #991b1b;
-  --status-red-border: #fecaca;
+  --status-red-border: rgba(255, 255, 255, 0.75);
   --status-red-dot: #ef4444;
 
-  --status-blue-bg: #eff6ff;
+  --status-blue-bg: #e2eae4;
   --status-blue-text: #1e40af;
-  --status-blue-border: #bfdbfe;
+  --status-blue-border: rgba(255, 255, 255, 0.75);
   --status-blue-dot: #3b82f6;
 
   /* Fonts */
@@ -65,11 +95,11 @@
   --font-body: 'Inter', system-ui, -apple-system, sans-serif;
 
   /* Elevation Shadows */
-  --shadow-sm: 0 1px 3px rgba(20, 34, 22, 0.05);
-  --shadow-card: 0 4px 14px rgba(8, 120, 63, 0.07);
-  --shadow-card-hover: 0 10px 24px rgba(8, 120, 63, 0.12);
-  --shadow-button: 0 4px 14px rgba(8, 120, 63, 0.32);
-  --shadow-button-danger: 0 4px 14px rgba(239, 68, 68, 0.32);
+  --shadow-sm: var(--shadow-flat-xs);
+  --shadow-card: var(--shadow-flat-lg);
+  --shadow-card-hover: 14px 14px 30px var(--neo-shadow-dark), -14px -14px 30px var(--neo-shadow-light);
+  --shadow-button: 4px 4px 10px var(--neo-shadow-dark), -4px -4px 10px var(--neo-shadow-light);
+  --shadow-button-danger: 4px 4px 10px var(--neo-shadow-dark), -4px -4px 10px var(--neo-shadow-light);
 
   /* Radius */
   --radius-sm: 8px;
@@ -81,9 +111,106 @@
   /* Transitions */
   --transition-fast: 0.15s ease;
   --transition-normal: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-theme: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Base Reset */
+/* ==========================================================================
+   Soft Neomorph Dark Mode (Tactile Night Surfaces)
+   ========================================================================== */
+[data-theme="dark"] {
+  /* Brand Theme Colors */
+  --primary-50: rgba(34, 197, 94, 0.15);
+  --primary-100: rgba(34, 197, 94, 0.25);
+  --primary-200: #15803d;
+  --primary-300: #16a34a;
+  --primary-400: #22c55e;
+  --primary-500: #4ade80;
+  --primary-600: #4ade80;
+  --primary-700: #4ade80;
+  --primary-800: #86efac;
+  --primary-900: #bbf7d0;
+
+  /* Accent Gold / Yellow */
+  --accent-yellow: #fde047;
+  --accent-yellow-hover: #facc15;
+  --accent-yellow-dark: #fef08a;
+  --accent-yellow-soft: rgba(253, 224, 71, 0.15);
+
+  /* Dark Neomorphic Surfaces */
+  --bg-page: #131d17;
+  --bg-card: #131d17;
+  --bg-card-subtle: #0f1812;
+  --bg-card-hover: #17241d;
+  --bg-primary-soft: rgba(34, 197, 94, 0.15);
+
+  /* Typography */
+  --text-primary: #f0f7f2;
+  --text-secondary: #c7d8cb;
+  --text-muted: #8ca291;
+  --text-subtle: #5f7564;
+
+  /* Dark Neomorphic Shadows (Dark drop & Soft subtle highlight) */
+  --neo-shadow-dark: #0a100c;
+  --neo-shadow-light: #1c2b22;
+
+  --shadow-flat: 8px 8px 20px var(--neo-shadow-dark), -8px -8px 20px var(--neo-shadow-light);
+  --shadow-flat-lg: 12px 12px 28px var(--neo-shadow-dark), -12px -12px 28px var(--neo-shadow-light);
+  --shadow-flat-sm: 4px 4px 10px var(--neo-shadow-dark), -4px -4px 10px var(--neo-shadow-light);
+  --shadow-flat-xs: 2px 2px 6px var(--neo-shadow-dark), -2px -2px 6px var(--neo-shadow-light);
+  --shadow-inset: inset 4px 4px 8px var(--neo-shadow-dark), inset -4px -4px 8px var(--neo-shadow-light);
+  --shadow-inset-sm: inset 2px 2px 5px var(--neo-shadow-dark), inset -2px -2px 5px var(--neo-shadow-light);
+
+  /* Borders */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-primary: rgba(74, 222, 128, 0.35);
+  --border-focus: #4ade80;
+
+  /* Universal component tokens mapped to Dark Neomorph */
+  --glass-bg: #131d17;
+  --glass-bg-subtle: #0f1812;
+  --glass-bg-hover: #17241d;
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-subtle: rgba(255, 255, 255, 0.06);
+  --glass-blur: none;
+  --glass-saturate: none;
+  --glass-shadow: var(--shadow-flat-lg);
+  --glass-shadow-hover: 14px 14px 32px var(--neo-shadow-dark), -14px -14px 32px var(--neo-shadow-light);
+  --glass-inner-highlight: inset 1px 1px 2px rgba(255, 255, 255, 0.1);
+  --glass-header-bg: #131d17;
+  --glass-input-bg: #0f1812;
+  --glass-fare-bg: #131d17;
+  --glass-fare-border: rgba(253, 224, 71, 0.4);
+  --glass-fare-shadow: 10px 10px 24px var(--neo-shadow-dark), -10px -10px 24px var(--neo-shadow-light);
+
+  /* Status Badges */
+  --status-green-bg: #0f1812;
+  --status-green-text: #4ade80;
+  --status-green-border: rgba(74, 222, 128, 0.3);
+  --status-green-dot: #4ade80;
+
+  --status-amber-bg: #0f1812;
+  --status-amber-text: #fde047;
+  --status-amber-border: rgba(253, 224, 71, 0.3);
+  --status-amber-dot: #facc15;
+
+  --status-red-bg: #0f1812;
+  --status-red-text: #f87171;
+  --status-red-border: rgba(248, 113, 113, 0.3);
+  --status-red-dot: #ef4444;
+
+  --status-blue-bg: #0f1812;
+  --status-blue-text: #60a5fa;
+  --status-blue-border: rgba(96, 165, 250, 0.3);
+  --status-blue-dot: #3b82f6;
+
+  /* Button shadows */
+  --shadow-button: 4px 4px 10px var(--neo-shadow-dark), -4px -4px 10px var(--neo-shadow-light);
+  --shadow-button-danger: 4px 4px 10px var(--neo-shadow-dark), -4px -4px 10px var(--neo-shadow-light);
+}
+
+/* ==========================================================================
+   Base Reset & Global Styles
+   ========================================================================== */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -105,6 +232,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  position: relative;
+  transition: background-color var(--transition-theme), color var(--transition-theme);
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -112,6 +241,7 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-primary);
   font-weight: 700;
   line-height: 1.25;
+  transition: color var(--transition-theme);
 }
 
 button {
@@ -123,12 +253,13 @@ button {
 }
 
 button:focus-visible, input:focus-visible {
-  outline: 2px solid var(--primary-700);
+  outline: 2px solid var(--border-focus);
   outline-offset: 2px;
 }
 
 input {
   font-family: inherit;
+  color: inherit;
 }
 
 /* Custom Scrollbars */
@@ -138,14 +269,14 @@ input {
 }
 
 ::-webkit-scrollbar-track {
-  background: #eef7f0;
+  background: var(--bg-card-subtle);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #a9d9b2;
+  background: var(--border-primary);
   border-radius: var(--radius-pill);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #08783F;
+  background: var(--primary-700);
 }

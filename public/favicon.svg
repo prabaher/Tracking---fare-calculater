@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Rounded Background Container -->
+  <rect width="64" height="64" rx="16" fill="url(#bgGrad)"/>
+  <rect x="2" y="2" width="60" height="60" rx="14" stroke="#F9E21B" stroke-width="2.5" stroke-opacity="0.9"/>
+
+  <!-- Speedometer / Meter Gauge Arc -->
+  <path d="M14 42 A 20 20 0 1 1 50 42" stroke="url(#arcGrad)" stroke-width="5" stroke-linecap="round"/>
+  
+  <!-- Gauge Tick Marks -->
+  <line x1="16" y1="36" x2="20" y2="34" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+  <line x1="32" y1="18" x2="32" y2="22" stroke="#F9E21B" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="48" y1="36" x2="44" y2="34" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+
+  <!-- Speedometer Needle Pointing High -->
+  <line x1="32" y1="38" x2="44" y2="24" stroke="#F9E21B" stroke-width="3.5" stroke-linecap="round"/>
+
+  <!-- Center Hub with Rupee Accent -->
+  <circle cx="32" cy="38" r="6" fill="#FFFFFF"/>
+  <circle cx="32" cy="38" r="3.5" fill="#075A32"/>
+
+  <!-- Route / Pin Indicator at Bottom -->
+  <path d="M26 50 C26 48, 38 48, 38 50 C38 52, 33 56, 32 57 C31 56, 26 52, 26 50 Z" fill="#F9E21B"/>
+
+  <!-- Gradients -->
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#075A32"/>
+      <stop offset="1" stop-color="#08783F"/>
+    </linearGradient>
+    <linearGradient id="arcGrad" x1="14" y1="42" x2="50" y2="42" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F9E21B"/>
+      <stop offset="0.5" stop-color="#25D366"/>
+      <stop offset="1" stop-color="#F9E21B"/>
+    </linearGradient>
+  </defs>
+</svg>

@@ -171,6 +171,7 @@ export default function App() {
     }
   });
   const [showSavedHistory, setShowSavedHistory] = useState(false);
+  const [mobileTab, setMobileTab] = useState('all'); // 'all' | 'distance' | 'fare' | 'summary'
 
   // Pre-detect current location on initial mount if browser geolocation is available
   useEffect(() => {
@@ -715,8 +716,11 @@ Generated with KiloFare Calculator • Karumbukkadai Delivery Pasanga`;
             </div>
             <div className="brand-text">
               <span className="brand-title">KiloFare</span>
-              <span className="brand-subtitle">
+              <span className="brand-subtitle brand-subtitle-full">
                 Kilometer &amp; Fare Calculator • <span className="brand-partner-badge">Karumbukkadai Delivery Pasanga</span>
+              </span>
+              <span className="brand-subtitle brand-subtitle-mobile">
+                <span className="brand-partner-badge">Karumbukkadai Pasanga</span>
               </span>
             </div>
           </div>
@@ -736,7 +740,8 @@ Generated with KiloFare Calculator • Karumbukkadai Delivery Pasanga`;
         <section className="welcome-section" aria-labelledby="welcome-heading">
           <div className="welcome-tag">
             <Activity size={14} className="tag-icon" />
-            <span>Karumbukkadai Delivery Pasanga • Precision Trip &amp; Fare Meter</span>
+            <span className="welcome-tag-text">Karumbukkadai Delivery Pasanga • Precision Trip &amp; Fare Meter</span>
+            <span className="welcome-tag-mobile">Karumbukkadai Pasanga • Trip Meter</span>
           </div>
           <h1 id="welcome-heading" className="welcome-title">
             Calculate Distance &amp; Fare Instantly
@@ -761,10 +766,54 @@ Generated with KiloFare Calculator • Karumbukkadai Delivery Pasanga`;
           </div>
         )}
 
+        {/* Mobile View Switcher (Keeps Distance, Fare, and Summary closely accessible without excessive scrolling) */}
+        <div className="mobile-tabs-container" role="tablist" aria-label="Dashboard Sections">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mobileTab === 'all'}
+            className={`mobile-tab-btn ${mobileTab === 'all' ? 'is-active' : ''}`}
+            onClick={() => setMobileTab('all')}
+          >
+            <Gauge size={13} />
+            <span>Compact All</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mobileTab === 'distance'}
+            className={`mobile-tab-btn ${mobileTab === 'distance' ? 'is-active' : ''}`}
+            onClick={() => setMobileTab('distance')}
+          >
+            <Navigation size={13} />
+            <span>Distance &amp; GPS</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mobileTab === 'fare'}
+            className={`mobile-tab-btn ${mobileTab === 'fare' ? 'is-active' : ''}`}
+            onClick={() => setMobileTab('fare')}
+          >
+            <IndianRupee size={13} />
+            <span>Fare Rate</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mobileTab === 'summary'}
+            className={`mobile-tab-btn ${mobileTab === 'summary' ? 'is-active' : ''}`}
+            onClick={() => setMobileTab('summary')}
+          >
+            <FileSpreadsheet size={13} />
+            <span>Summary &amp; Save</span>
+          </button>
+        </div>
+
         {/* 3. Main Dashboard with Two Cards */}
         <section className="dashboard-grid" aria-label="Fare Calculator Dashboard">
           {/* LEFT CARD — Distance Tracker */}
-          <div className="dashboard-card distance-tracker-card">
+          <div className={`dashboard-card distance-tracker-card ${mobileTab !== 'all' && mobileTab !== 'distance' ? 'mobile-hidden' : ''}`}>
             <div className="card-header">
               <div className="card-header-icon bg-primary">
                 <MapPin size={22} className="text-primary" />
@@ -828,6 +877,24 @@ Generated with KiloFare Calculator • Karumbukkadai Delivery Pasanga`;
                   ? 'Manual input is locked while GPS tracking is active.'
                   : 'Enter any distance. Decimals supported (e.g. 1.25, 5.75).'}
               </p>
+              {!isTracking && (
+                <div className="quick-presets-row" aria-label="Quick distance shortcuts">
+                  <span className="quick-presets-label">Quick:</span>
+                  {[1, 2, 5, 10, 15, 20].map((presetKm) => (
+                    <button
+                      key={presetKm}
+                      type="button"
+                      className={`btn-rate-preset ${distance === presetKm ? 'is-active' : ''}`}
+                      onClick={() => {
+                        setDistance(presetKm);
+                        setInputDistance(presetKm.toFixed(2));
+                      }}
+                    >
+                      {presetKm} km
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* GPS Telemetry Info Bar */}
@@ -907,7 +974,7 @@ Generated with KiloFare Calculator • Karumbukkadai Delivery Pasanga`;
           </div>
 
           {/* RIGHT CARD — Fare Settings */}
-          <div className="dashboard-card fare-settings-card">
+          <div className={`dashboard-card fare-settings-card ${mobileTab !== 'all' && mobileTab !== 'fare' ? 'mobile-hidden' : ''}`}>
             <div className="card-header">
               <div className="card-header-icon bg-accent">
                 <IndianRupee size={22} className="text-accent" />
@@ -954,6 +1021,22 @@ Generated with KiloFare Calculator • Karumbukkadai Delivery Pasanga`;
               <p id="rate-helper" className="helper-text">
                 Standard rate: ₹20/km. Custom rates and decimal values supported.
               </p>
+              <div className="quick-presets-row" aria-label="Quick rate shortcuts">
+                <span className="quick-presets-label">Quick:</span>
+                {[15, 18, 20, 22, 25, 30].map((presetRate) => (
+                  <button
+                    key={presetRate}
+                    type="button"
+                    className={`btn-rate-preset ${rate === presetRate ? 'is-active' : ''}`}
+                    onClick={() => {
+                      setRate(presetRate);
+                      setInputRate(presetRate.toString());
+                    }}
+                  >
+                    ₹{presetRate}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Live Calculation Breakdown Box */}
@@ -983,7 +1066,7 @@ Generated with KiloFare Calculator • Karumbukkadai Delivery Pasanga`;
         </section>
 
         {/* 4. Trip Summary & Controls Section with Save to Google Sheets */}
-        <section className="trip-summary-section" aria-labelledby="summary-heading">
+        <section className={`trip-summary-section ${mobileTab !== 'all' && mobileTab !== 'summary' ? 'mobile-hidden' : ''}`} aria-labelledby="summary-heading">
           <div className="summary-header">
             <div>
               <h2 id="summary-heading" className="section-title">
@@ -1158,12 +1241,17 @@ Generated with KiloFare Calculator • Karumbukkadai Delivery Pasanga`;
             </div>
 
             <div className="summary-stat-card highlight-fare-card">
-              <span className="stat-label">Total Fare</span>
+              <div className="stat-label-wrap">
+                <span className="stat-label">Total Fare</span>
+                <span className="fare-badge-collect">₹ Collect Fare</span>
+              </div>
               <div className="stat-value-group">
                 <span className="stat-unit">₹</span>
                 <span className="stat-number">{formatCurrency(totalFare)}</span>
               </div>
-              <span className="stat-sub">Exact calculated amount</span>
+              <span className="stat-sub">
+                {distance.toFixed(2)} km × ₹{rate.toFixed(2)}/km
+              </span>
             </div>
           </div>
 
@@ -1244,6 +1332,43 @@ Generated with KiloFare Calculator • Karumbukkadai Delivery Pasanga`;
             </div>
           )}
         </section>
+        {/* Quick Floating Fare Bar for Mobile (Always visible and close at hand) */}
+        <div className="mobile-sticky-fare-bar" aria-label="Quick Fare Summary">
+          <div className="sticky-fare-info">
+            <span className="sticky-fare-label">Total Fare</span>
+            <div className="sticky-fare-numbers">
+              <span className="sticky-fare-currency">₹</span>
+              <span className="sticky-fare-amount">{formatCurrency(totalFare)}</span>
+            </div>
+            <span className="sticky-fare-meta">{distance.toFixed(2)} km @ ₹{rate.toFixed(0)}</span>
+          </div>
+          <div className="sticky-fare-actions">
+            <button
+              type="button"
+              className={`btn-sticky-save ${saveButtonState === 'saving' ? 'btn-saving' : ''} ${saveButtonState === 'saved' ? 'btn-saved' : ''}`}
+              onClick={handleDirectSaveToSheets}
+              disabled={isSaving}
+              title="Save directly to Google Sheets"
+            >
+              {saveButtonState === 'saving' ? (
+                <>
+                  <Activity size={15} className="spin-slow" />
+                  <span>Saving...</span>
+                </>
+              ) : saveButtonState === 'saved' ? (
+                <>
+                  <CheckCircle2 size={15} />
+                  <span>Saved!</span>
+                </>
+              ) : (
+                <>
+                  <FileSpreadsheet size={15} />
+                  <span>Save Sheet</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
       </main>
 
       {/* 5. Footer */}

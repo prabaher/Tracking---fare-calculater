@@ -97,6 +97,14 @@
   color: var(--text-muted);
 }
 
+.brand-subtitle-mobile {
+  display: none;
+}
+
+.brand-subtitle-full {
+  display: inline;
+}
+
 .brand-partner-badge {
   color: var(--primary-700);
   font-weight: 700;
@@ -214,6 +222,14 @@
   font-size: 0.8rem;
   font-weight: 700;
   margin-bottom: 0.85rem;
+}
+
+.welcome-tag-mobile {
+  display: none;
+}
+
+.welcome-tag-text {
+  display: inline;
 }
 
 .welcome-title {
@@ -458,6 +474,53 @@
   background-color: var(--bg-primary-soft);
   padding: 0.15rem 0.5rem;
   border-radius: var(--radius-pill);
+}
+
+/* Quick Preset Shortcuts */
+.quick-presets-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.quick-presets-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-right: 0.1rem;
+}
+
+.btn-rate-preset {
+  padding: 0.3rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background-color: var(--bg-card-subtle);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+  touch-action: manipulation;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-rate-preset:hover {
+  background-color: var(--bg-primary-soft);
+  border-color: var(--primary-700);
+  color: var(--primary-800);
+}
+
+.btn-rate-preset.is-active {
+  background: linear-gradient(135deg, var(--primary-700) 0%, var(--primary-800) 100%);
+  border-color: var(--accent-yellow);
+  color: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(8, 120, 63, 0.25);
 }
 
 .input-wrapper {
@@ -968,29 +1031,39 @@
 }
 
 .route-connector-box {
-  display: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin: -0.25rem 0;
+  z-index: 2;
+}
+
+.route-arrow-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: #FFFFFF;
+  border: 1.5px solid var(--border-primary);
+  color: var(--primary-800);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  transform: rotate(90deg);
+  transition: transform var(--transition-fast);
 }
 
 @media (min-width: 768px) {
   .route-connector-box {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
+    margin: 0;
     padding: 0 0.5rem;
   }
 
   .route-arrow-circle {
     width: 32px;
     height: 32px;
-    border-radius: 50%;
-    background-color: #FFFFFF;
-    border: 1.5px solid var(--border-primary);
-    color: var(--primary-800);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    transform: rotate(0deg);
   }
 }
 
@@ -1019,6 +1092,25 @@
 .highlight-fare-card {
   background: linear-gradient(180deg, #fffde6 0%, #fef9c3 100%);
   border-color: var(--accent-yellow);
+}
+
+.stat-label-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.fare-badge-collect {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #065f46;
+  background-color: #d1fae5;
+  border: 1px solid #a7f3d0;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0;
 }
 
 .stat-label {
@@ -1521,3 +1613,705 @@
 .font-mono {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
+
+/* ==========================================================================
+   Mobile-First Optimization & Responsiveness (max-width: 640px)
+   Engineered for delivery riders & phone users: clean, compact, close together
+   ========================================================================== */
+
+/* Mobile Segmented View Switcher Bar (Hidden on desktop) */
+.mobile-tabs-container {
+  display: none;
+}
+
+.mobile-sticky-fare-bar {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  /* Page & Layout Padding - Streamlined to reduce scroll distance */
+  .main-content {
+    padding: 0.65rem 0.65rem 5.5rem; /* Extra bottom padding for sticky quick bar */
+  }
+
+  /* Header Optimization */
+  .header-inner {
+    padding: 0.55rem 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .logo-icon-wrapper {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+  }
+
+  .logo-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .brand-title {
+    font-size: 1.15rem;
+    line-height: 1;
+  }
+
+  .brand-subtitle-full {
+    display: none;
+  }
+
+  .brand-subtitle-mobile {
+    display: inline-flex;
+    margin-top: 0.1rem;
+  }
+
+  .brand-partner-badge {
+    font-size: 0.65rem;
+    padding: 0.05rem 0.35rem;
+    margin-left: 0;
+  }
+
+  .status-pill {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.7rem;
+  }
+
+  /* Welcome Section: Compact & tight to bring dashboard immediately into view */
+  .welcome-section {
+    margin-bottom: 0.45rem;
+    padding: 0 0.15rem;
+  }
+
+  .welcome-tag {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.65rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .welcome-tag-text {
+    display: none;
+  }
+
+  .welcome-tag-mobile {
+    display: inline;
+  }
+
+  .welcome-title {
+    font-size: 1.25rem;
+    line-height: 1.2;
+    margin-bottom: 0.15rem;
+    letter-spacing: -0.02em;
+  }
+
+  /* Hide bulky subtitle on mobile to bring calculator cards up by ~50px */
+  .welcome-subtitle {
+    display: none;
+  }
+
+  /* Mobile Tabs Switcher Bar: Allows 1-tap switching between sections or compact all */
+  .mobile-tabs-container {
+    display: flex;
+    align-items: center;
+    background: #FFFFFF;
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--radius-pill);
+    padding: 0.22rem;
+    margin-bottom: 0.55rem;
+    box-shadow: 0 2px 8px rgba(8, 120, 63, 0.06);
+    gap: 0.2rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .mobile-tabs-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-tab-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.38rem 0.55rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    border-radius: var(--radius-pill);
+    background: transparent;
+    border: none;
+    white-space: nowrap;
+    transition: all var(--transition-fast);
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .mobile-tab-btn.is-active {
+    background: linear-gradient(135deg, var(--primary-700) 0%, var(--primary-800) 100%);
+    color: #FFFFFF;
+    box-shadow: 0 2px 8px rgba(8, 120, 63, 0.28);
+  }
+
+  /* Hide sections on mobile when user switches to a single focused tab */
+  .mobile-hidden {
+    display: none !important;
+  }
+
+  /* Dashboard Cards: Tight padding & compact spacing so they sit closely together */
+  .dashboard-grid {
+    gap: 0.55rem;
+    margin-bottom: 0.55rem;
+  }
+
+  .dashboard-card {
+    padding: 0.85rem 0.85rem;
+    border-radius: 14px;
+    border-width: 1.5px;
+  }
+
+  .card-header {
+    margin-bottom: 0.45rem;
+    gap: 0.45rem;
+    align-items: center;
+  }
+
+  .card-header-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+  }
+
+  .card-title {
+    font-size: 1.02rem;
+    line-height: 1.1;
+  }
+
+  /* Hide filler description on mobile to save vertical space */
+  .card-description {
+    display: none;
+  }
+
+  /* Readout Displays: Streamlined compact height (reduced from 110px to ~45px) */
+  .distance-display-box,
+  .rate-display-box {
+    padding: 0.45rem 0.65rem;
+    margin-bottom: 0.45rem;
+    border-radius: 10px;
+    border-width: 1px;
+  }
+
+  .distance-value,
+  .rate-value {
+    font-size: 1.85rem;
+  }
+
+  .distance-unit,
+  .rate-unit {
+    font-size: 0.95rem;
+  }
+
+  .rate-currency {
+    font-size: 1.35rem;
+  }
+
+  .distance-status-sub,
+  .rate-subtext {
+    font-size: 0.72rem;
+    margin-top: 0.15rem;
+  }
+
+  /* Form Inputs & Touch Targets */
+  .form-group {
+    margin-bottom: 0.45rem;
+  }
+
+  .form-label {
+    font-size: 0.78rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .input-wrapper {
+    border-radius: 10px;
+  }
+
+  .number-input {
+    padding: 0.6rem 0.75rem;
+    font-size: 1rem;
+  }
+
+  .number-input.with-prefix {
+    padding-left: 1.85rem;
+  }
+
+  .input-prefix {
+    left: 0.65rem;
+    font-size: 0.95rem;
+  }
+
+  .input-suffix {
+    padding-right: 0.65rem;
+    font-size: 0.76rem;
+  }
+
+  /* Hide repetitive helper paragraphs on mobile to save vertical space */
+  .helper-text {
+    display: none;
+  }
+
+  /* Quick Presets on Mobile: Compact chip row */
+  .quick-presets-row {
+    margin-top: 0.35rem;
+    gap: 0.25rem;
+  }
+
+  .quick-presets-label {
+    font-size: 0.68rem;
+  }
+
+  .btn-rate-preset {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.74rem;
+    min-height: 28px;
+    border-width: 1px;
+  }
+
+  /* GPS Telemetry Panel: Sleek compact strip */
+  .gps-telemetry-panel {
+    padding: 0.45rem 0.65rem;
+    gap: 0.35rem;
+    margin-bottom: 0.45rem;
+    border-radius: 10px;
+    border-width: 1px;
+  }
+
+  .telemetry-label {
+    font-size: 0.65rem;
+  }
+
+  .telemetry-value {
+    font-size: 0.78rem;
+    margin-top: 0.1rem;
+  }
+
+  /* Action Buttons */
+  .gps-controls-container {
+    margin-bottom: 0.45rem;
+  }
+
+  .btn-action {
+    padding: 0.75rem 0.85rem;
+    font-size: 0.9rem;
+    min-height: 44px;
+    border-radius: 10px;
+  }
+
+  .btn-action:active {
+    transform: scale(0.98);
+  }
+
+  /* Hide filler GPS notice on mobile to save 40px */
+  .gps-notice-box {
+    display: none;
+  }
+
+  /* Live Calculation Breakdown Widget: Streamlined */
+  .calculation-breakdown-card {
+    padding: 0.55rem 0.65rem;
+    margin-top: 0.35rem;
+    border-radius: 10px;
+    border-width: 1px;
+  }
+
+  .breakdown-title {
+    font-size: 0.68rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .breakdown-formula {
+    gap: 0.2rem;
+  }
+
+  .formula-num {
+    font-size: 0.82rem;
+  }
+
+  .formula-label {
+    font-size: 0.6rem;
+  }
+
+  .formula-op {
+    font-size: 0.85rem;
+  }
+
+  .formula-result .formula-num {
+    font-size: 0.98rem;
+  }
+
+  /* Trip Summary & Controls Section: Kept closely stacked */
+  .trip-summary-section {
+    padding: 0.85rem 0.85rem;
+    border-radius: 14px;
+    border-width: 1.5px;
+    margin-bottom: 0.55rem;
+  }
+
+  .summary-header {
+    margin-bottom: 0.55rem;
+    gap: 0.45rem;
+  }
+
+  .section-title {
+    font-size: 1.05rem;
+  }
+
+  /* Hide filler description to keep section close */
+  .section-description {
+    display: none;
+  }
+
+  /* Summary Action Buttons: Compact, thumb-friendly 2-tier layout */
+  .summary-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.45rem;
+    width: 100%;
+  }
+
+  .btn-save-sheets {
+    grid-column: 1 / -1;
+    width: 100%;
+    justify-content: center;
+    padding: 0.75rem 0.85rem;
+    font-size: 0.9rem;
+    min-height: 46px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(8, 120, 63, 0.32);
+  }
+
+  .btn-save-sheets:active {
+    transform: scale(0.98);
+  }
+
+  .btn-secondary,
+  .btn-reset {
+    width: 100%;
+    justify-content: center;
+    padding: 0.6rem 0.45rem;
+    font-size: 0.78rem;
+    min-height: 40px;
+    border-radius: 10px;
+  }
+
+  /* Route Locations Display: Streamlined compact fields */
+  .route-locations-display {
+    padding: 0.65rem 0.75rem;
+    gap: 0.35rem;
+    margin-bottom: 0.55rem;
+    border-radius: 10px;
+    border-width: 1px;
+  }
+
+  .route-point-box {
+    padding: 0.45rem 0.65rem;
+    border-radius: 8px;
+  }
+
+  .route-box-header {
+    margin-bottom: 0.2rem;
+  }
+
+  .route-box-title {
+    font-size: 0.7rem;
+  }
+
+  .route-badge-auto {
+    font-size: 0.62rem;
+    padding: 0.1rem 0.4rem;
+  }
+
+  .route-input {
+    font-size: 0.84rem;
+    padding: 0.1rem 0;
+  }
+
+  .route-connector-box {
+    margin: -0.2rem 0;
+  }
+
+  .route-arrow-circle {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* Summary Stat Cards: Compact Hero Total Fare Card on top */
+  .summary-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.45rem;
+  }
+
+  .highlight-fare-card {
+    grid-column: 1 / -1;
+    order: -1;
+    padding: 0.85rem 0.85rem;
+    background: linear-gradient(135deg, #fffde6 0%, #fef9c3 60%, #ecfdf5 100%);
+    border: 1.5px solid var(--accent-yellow);
+    box-shadow: 0 4px 14px rgba(249, 226, 27, 0.2);
+    border-radius: 12px;
+  }
+
+  .highlight-fare-card .stat-label {
+    font-size: 0.72rem;
+    color: var(--primary-800);
+  }
+
+  .fare-badge-collect {
+    font-size: 0.64rem;
+    padding: 0.1rem 0.4rem;
+  }
+
+  .highlight-fare-card .stat-value-group {
+    margin: 0.25rem 0 0.15rem;
+  }
+
+  .highlight-fare-card .stat-number {
+    font-size: 1.95rem;
+    color: var(--primary-900);
+  }
+
+  .highlight-fare-card .stat-unit {
+    font-size: 1.25rem;
+    color: var(--primary-700);
+  }
+
+  .highlight-fare-card .stat-sub {
+    font-size: 0.72rem;
+    color: var(--primary-800);
+    font-weight: 600;
+  }
+
+  .summary-stat-card:not(.highlight-fare-card) {
+    padding: 0.45rem 0.35rem;
+    text-align: center;
+    align-items: center;
+    border-radius: 8px;
+    border-width: 1px;
+  }
+
+  .summary-stat-card:not(.highlight-fare-card) .stat-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.01em;
+  }
+
+  .summary-stat-card:not(.highlight-fare-card) .stat-value-group {
+    margin: 0.2rem 0 0.1rem;
+    justify-content: center;
+  }
+
+  .summary-stat-card:not(.highlight-fare-card) .stat-number {
+    font-size: 0.98rem;
+  }
+
+  .summary-stat-card:not(.highlight-fare-card) .stat-unit {
+    font-size: 0.72rem;
+  }
+
+  .summary-stat-card:not(.highlight-fare-card) .stat-sub {
+    display: none;
+  }
+
+  /* History Panel & Table */
+  .saved-trips-bar {
+    margin-top: 0.55rem;
+  }
+
+  .saved-history-panel {
+    padding: 0.65rem 0.55rem;
+    margin-top: 0.55rem;
+    border-radius: 10px;
+  }
+
+  .history-header {
+    margin-bottom: 0.55rem;
+  }
+
+  .history-header h4 {
+    font-size: 0.84rem;
+  }
+
+  .history-table th,
+  .history-table td {
+    padding: 0.45rem 0.35rem;
+    font-size: 0.74rem;
+  }
+
+  .cell-location {
+    max-width: 95px;
+  }
+
+  /* Guide Accordion */
+  .faq-guide-section {
+    margin-bottom: 0.85rem;
+  }
+
+  .guide-toggle-button {
+    padding: 0.65rem 0.85rem;
+    font-size: 0.82rem;
+    border-radius: 12px;
+  }
+
+  .guide-content-panel {
+    padding: 0.85rem 0.75rem;
+  }
+
+  .guide-grid {
+    gap: 0.55rem;
+  }
+
+  .guide-box {
+    padding: 0.75rem;
+  }
+
+  /* Floating Sticky Fare Bar for Mobile (Always visible & closely accessible) */
+  .mobile-sticky-fare-bar {
+    position: fixed;
+    bottom: 0.65rem;
+    left: 0.65rem;
+    right: 0.65rem;
+    max-width: 480px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1.5px solid var(--accent-yellow);
+    border-radius: var(--radius-pill);
+    padding: 0.4rem 0.65rem 0.4rem 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 8px 24px rgba(8, 120, 63, 0.2), 0 2px 8px rgba(0, 0, 0, 0.08);
+    z-index: 90;
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .sticky-fare-info {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .sticky-fare-label {
+    font-size: 0.66rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+  }
+
+  .sticky-fare-numbers {
+    display: flex;
+    align-items: baseline;
+    gap: 0.1rem;
+  }
+
+  .sticky-fare-currency {
+    font-size: 0.95rem;
+    font-weight: 900;
+    color: var(--primary-700);
+  }
+
+  .sticky-fare-amount {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: var(--primary-900);
+    line-height: 1;
+  }
+
+  .sticky-fare-meta {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .btn-sticky-save {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0.95rem;
+    background: linear-gradient(135deg, var(--primary-700) 0%, var(--primary-800) 100%);
+    color: #FFFFFF;
+    border: 1px solid var(--accent-yellow);
+    border-radius: var(--radius-pill);
+    font-size: 0.82rem;
+    font-weight: 800;
+    box-shadow: 0 2px 8px rgba(8, 120, 63, 0.3);
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .btn-sticky-save:active {
+    transform: scale(0.96);
+  }
+
+  .btn-sticky-save.btn-saved {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-color: #34d399;
+  }
+
+  /* Footer */
+  .app-footer {
+    padding: 1rem 0.75rem 2rem;
+  }
+
+  .footer-brand {
+    font-size: 0.85rem;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+
+  .footer-tagline {
+    font-size: 0.74rem;
+  }
+
+  .footer-notes {
+    font-size: 0.7rem;
+  }
+}
+
+/* Ultra-Compact Phone Screens (<= 360px wide, e.g. iPhone SE, small Galaxy) */
+@media (max-width: 360px) {
+  .distance-value,
+  .rate-value {
+    font-size: 1.65rem;
+  }
+
+  .highlight-fare-card .stat-number {
+    font-size: 1.75rem;
+  }
+
+  .summary-stat-card:not(.highlight-fare-card) .stat-number {
+    font-size: 0.9rem;
+  }
+
+  .btn-rate-preset {
+    padding: 0.22rem 0.45rem;
+    font-size: 0.7rem;
+  }
+
+  .mobile-tab-btn {
+    font-size: 0.68rem;
+    padding: 0.35rem 0.4rem;
+  }
+
+  .sticky-fare-amount {
+    font-size: 1.15rem;
+  }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+

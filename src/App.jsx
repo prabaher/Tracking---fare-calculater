@@ -928,25 +928,7 @@ Generated with KiloFare Calculator • Karumbukkadai Delivery Pasanga`;
                 {isTracking
                   ? 'Manual input is locked while GPS tracking is active.'
                   : 'Enter any distance. Decimals supported (e.g. 1.25, 5.75).'}
-              </p>
-              {!isTracking && (
-                <div className="quick-presets-row" aria-label="Quick distance shortcuts">
-                  <span className="quick-presets-label">Quick:</span>
-                  {[1, 2, 5, 10, 15, 20].map((presetKm) => (
-                    <button
-                      key={presetKm}
-                      type="button"
-                      className={`btn-rate-preset ${distance === presetKm ? 'is-active' : ''}`}
-                      onClick={() => {
-                        setDistance(presetKm);
-                        setInputDistance(presetKm.toFixed(2));
-                      }}
-                    >
-                      {presetKm} km
-                    </button>
-                  ))}
-                </div>
-              )}
+              </p> 
             </div>
 
             {/* GPS Telemetry Info Bar */}
@@ -1075,7 +1057,7 @@ Generated with KiloFare Calculator • Karumbukkadai Delivery Pasanga`;
               </p>
               <div className="quick-presets-row" aria-label="Quick rate shortcuts">
                 <span className="quick-presets-label">Quick:</span>
-                {[15, 18, 20, 22, 25, 30].map((presetRate) => (
+                {[10,15, 18, 20, 22, 25].map((presetRate) => (
                   <button
                     key={presetRate}
                     type="button"

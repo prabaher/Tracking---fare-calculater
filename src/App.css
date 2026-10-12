@@ -1294,12 +1294,12 @@
 }
 
 .btn-history-toggle:hover {
-  background: #daf1df;
+  background: #19341f;
 }
 
 .saved-history-panel {
   margin-top: 1rem;
-  background: #fbfdfc;
+  background: #121b14;
   border: 1.5px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   padding: 1.1rem;
@@ -1345,7 +1345,7 @@
 }
 
 .history-table th {
-  background: #f0f7f2;
+  background: #2b3e30;
   color: var(--primary-800);
   font-weight: 800;
   padding: 0.55rem 0.75rem;
@@ -1834,21 +1834,21 @@
 }
 
 [data-theme="dark"] .highlight-fare-card .stat-number {
-  color: #fde047;
+  color: #1a3711;
   text-shadow: 0 0 16px rgba(253, 224, 71, 0.35);
 }
 
 [data-theme="dark"] .highlight-fare-card .stat-label {
-  color: #fef08a;
+  color: #16381a;
 }
 
 [data-theme="dark"] .highlight-fare-card .stat-sub {
-  color: #fef9c3;
+  color: #154820;
 }
 
 [data-theme="dark"] .fare-badge-collect {
-  background-color: rgba(34, 197, 94, 0.18);
-  color: #6ee7b7;
+  background-color: #08783f;;
+  color: #fafffd;
   border-color: rgba(52, 211, 153, 0.4);
 }
 

@@ -1,69 +1,92 @@
 # 🚖 KiloFare — Kilometer & Fare Calculator
 
-A clean, responsive React web application that calculates travel distance and fare using either **live browser GPS tracking** or **manual kilometer entry**.
+A mobile-first React (Vite) app that measures a trip with live browser GPS (or a manual
+kilometer entry), prices it with an editable per-kilometer tariff, and keeps a local trip
+history with real route maps.
+
+Designed for a phone screen first (verified at 320 / 360 / 375 / 390 / 412 px and up), with
+light & dark themes and an Android-style fixed bottom navigation.
 
 ---
 
-## 🌟 Core Features
+## 🧭 Four sections (fixed bottom navigation)
 
-### 1. Kilometer Calculator
-- **Default distance**: Starts at `1.00 km`.
-- **Editable numeric input**: Allows decimal values (e.g. `1.25 km`, `5.75 km`).
-- **Input Validation**: Prevents negative values; ensures graceful fallbacks.
-- **GPS Safety Lock**: Automatically disables and locks manual input during active GPS tracking to prevent accidental alterations.
-- **Trip Editing**: Once GPS trip is stopped, users can manually adjust the distance as needed.
+| Section | Purpose |
+| --- | --- |
+| **Home** | Trip dashboard: distance, fare rate, duration, total fare, start/stop locations, Start / Pause / Resume / Stop / Save controls |
+| **Distance & GPS** | Distance meter, manual distance entry, GPS accuracy / fix count / status, route location fields |
+| **Fare Rate** | Price per km, quick rate shortcuts, live `Distance × Rate = Total Fare` breakdown |
+| **History** | Saved trips grouped by date with route previews, per-trip delete, clear all, and a full trip detail view with an interactive map |
 
-### 2. Editable Fare Per Kilometer
-- **Default rate**: `₹20` per kilometer.
-- **Custom Rates**: Editable numeric input allowing custom rupee tariffs and decimals (e.g. ₹18.50, ₹22.00).
-- **Instant Recalculation**: Any rate or distance change instantly recalculates the total fare in real time.
-
-### 3. Automatic Fare Calculation
-- **Formula**:
-  $$\text{Total Fare} = \text{Distance in Kilometers} \times \text{Price Per Kilometer}$$
-- **Currency formatting**: Displayed in Indian Rupees (`₹`), rounded and formatted to two decimal places (e.g. `₹20.00`, `₹100.00`).
-- **Live Breakdown**: Formula breakdown displaying `Distance × Rate = Total Fare`.
-
-### 4. Real-Time GPS Trip Tracking
-- Uses browser's native `navigator.geolocation.watchPosition()`.
-- **Haversine Formula**: Calculates great-circle distance between successive geographical coordinates.
-- **High Accuracy Mode**: Configured with `enableHighAccuracy: true`, `timeout: 15000`, and `maximumAge: 0`.
-- **Jitter & Noise Filtering**:
-  - Discards inaccurate satellite fixes (`accuracy > 50m`).
-  - Ignores stationary micro-jitter (`< 4m`) to prevent phantom distance creep when standing still.
-  - Filters out unrealistic speed jumps (`> 220 km/h`).
-- **Initial Trip Distance**: Starts at `0.00 km` for newly initiated GPS trips.
-- **Live Trip Timer**: Displays elapsed duration in `HH:MM:SS` format.
-- **Clear GPS Telemetry**: Shows status indicators (*Ready to Track*, *Finding Location*, *GPS Connected*, *Trip Stopped*, *GPS Unavailable*, *Permission Denied*).
-- **Graceful Error Handling**: Fallbacks and notifications if user denies location permissions or GPS is unavailable.
-
-### 5. Trip Summary & Google Sheets Integration
-- Displays **Total Distance**, **Price Per KM**, **Trip Duration**, and **Total Fare**.
-- **Save to Google Sheets**:
-  - Automatically captures or lets you enter **Starting Location** and **Ending Location (Destination)**.
-  - Sends Timestamp, Date, Time, Starting Location, Ending Location, Distance (km), Rate (₹/km), Total Fare (₹), Duration, and Tracking Mode to Google Sheets via Google Apps Script.
-  - Pre-packaged ready-to-deploy script available in [google-sheets-apps-script.js](file:///p:/weekly%20project/Tracking%20&%20fare%20calculater/google-sheets-apps-script.js).
-  - Also records recent trip entries into a local offline log with export/clear options.
-- **Reset Calculator**: Restores manual defaults (`1.00 km` and `₹20/km`), terminates active GPS watch, and resets the timer to `00:00:00`.
-- **Copy Summary**: One-click copy of the trip receipt to clipboard.
+Switching sections never resets an active trip or interrupts tracking — all trip state lives
+in one place above the screens.
 
 ---
 
-## 🚀 Running the Project Locally
+## ⏱️ Trip timing (the important part)
 
-### 1. Start Development Server
-```bash
-npm run dev
-```
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+Duration is **never** a counter incremented by `setInterval`. The app records timestamps for
+trip start, pause, resume and stop, and derives the duration from them:
 
-### 2. Testing GPS on Mobile Phone (Local Network)
-```bash
-npm run dev -- --host
+```text
+active ms = accumulatedActiveMs + (Date.now() - currentSegmentStartedAt)
 ```
 
-### 3. Production Build
+Consequences:
+
+- Locking the phone screen, backgrounding the tab or timer throttling cannot desync the
+  duration — the value is recomputed from timestamps the moment the app returns to the
+  foreground (`visibilitychange` / `focus` / `pageshow`).
+- Paused time is stored separately and excluded from the active duration.
+- Duration keeps rendering as `HH:MM:SS`.
+
+## 📍 GPS & distance
+
+- Uses `navigator.geolocation.watchPosition({ enableHighAccuracy: true })`.
+- Fixes worse than ±50 m accuracy are discarded.
+- Movement is accepted only once it exceeds a threshold derived from the reported accuracy
+  (`min(max(3, accuracy × 0.8), 15)` meters), so a stationary phone cannot slowly manufacture
+  distance. Rejected fixes do **not** move the reference point, so genuine slow movement is
+  still counted on the next accepted fix.
+- Implausible jumps (> 220 km/h) are re-baselined instead of billed as travelled distance.
+- Pausing and resuming resets the reference point, so movement during a pause is not charged.
+- Fixes that arrive after a stop / pause / reset are ignored.
+
+## 💾 Trip persistence
+
+- Saved trips and the in-progress session are stored in `localStorage` (`kilofare_saved_trips`
+  / `kilofare_active_session`); no account or backend is required.
+- An active (or stopped-but-unsaved) trip is restored after a refresh, including distance,
+  timestamps and route — the duration is recomputed immediately from the stored timestamps.
+- Route geometry is sampled and rounded (≤ 400 points, ~1 m precision) before storage, and
+  storage degrades oldest routes first if the browser quota is reached.
+- History starts empty — the app never invents sample trips, addresses or routes.
+
+## 🗺️ Route maps
+
+Route previews on history cards and the interactive map in the trip detail view use
+[Leaflet](https://leafletjs.com/) with OpenStreetMap raster tiles (free, no API key). Map data
+is © OpenStreetMap contributors. If a trip has no route coordinates, the UI clearly shows a
+"route unavailable" fallback instead of drawing a fake route.
+
+## ⚠️ Mobile browser limitation
+
+A web page cannot guarantee continuous background GPS. When the screen is locked or the
+browser suspends the tab, the OS may stop delivering location updates. KiloFare keeps the
+**duration** correct in that situation (it is timestamp based) and resumes GPS on return to
+the foreground, but distance travelled while the page was suspended can only be recovered if
+the browser delivered the fixes. True always-on background tracking would require a native
+Android build with a foreground location service.
+
+---
+
+## 🚀 Running the project
+
 ```bash
-npm run build
-npm run preview
+npm run dev        # dev server
+npm run dev -- --host   # test from a phone on the same network
+npm run build      # production build
+npm run preview    # preview the production build
+npm run lint       # oxlint
+npm run test:logic # dependency-free checks for the timer + GPS maths
 ```

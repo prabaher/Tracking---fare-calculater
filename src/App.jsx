@@ -9,7 +9,8 @@ import {
   reverseGeocodeCoords,
   formatDuration,
   formatCurrency,
-  evaluateGpsFix,
+  createGpsOdometer,
+  GPS_TRACKING_OPTIONS,
   computeActiveMs,
   sampleRoute,
   compactRouteCoordinates,
@@ -95,8 +96,17 @@ export default function App() {
 
   // Refs for background watch and calculation
   const watchIdRef = useRef(null);
-  const prevPositionRef = useRef(null);
+  // One odometer for the whole app: it owns the accuracy gate, the ordering
+  // gate, the noise floor and the plausibility check, so no other code path can
+  // add GPS noise to the trip distance.
+  const odometerRef = useRef(null);
+  if (odometerRef.current === null) {
+    odometerRef.current = createGpsOdometer();
+  }
   const accumulatedDistanceRef = useRef(0);
+  // True once the current trip has captured its start point, so the start
+  // address is resolved exactly once per trip.
+  const startCapturedRef = useRef(false);
   const restoredSessionRef = useRef(false);
   // Guard so a GPS fix that was already queued when the trip stopped/paused/reset
   // can never keep moving the odometer after the watch was cleared.
@@ -125,6 +135,7 @@ export default function App() {
       routeCoordinates: sampleRoute(routeCoordinates, 500),
       maxSpeed,
       gpsPointsCount,
+      odometer: odometerRef.current ? odometerRef.current.snapshot() : null,
       savedAt: Date.now(),
     };
   });
@@ -258,11 +269,15 @@ export default function App() {
 
     if (restoredRoute.length > 0) {
       const lastPoint = restoredRoute[restoredRoute.length - 1];
-      prevPositionRef.current = {
+      // Restore the measurement segment from the last recorded fix. The route
+      // point is the smoothed, accepted position, so resuming never re-adds the
+      // noise that was already filtered out.
+      odometerRef.current.beginSegment({
         lat: lastPoint.lat,
         lon: lastPoint.lon,
-        timestamp: lastPoint.t ?? Date.now(),
-      };
+        accuracy: session.odometer?.bestAccuracyMeters ?? undefined,
+      });
+      odometerRef.current.restore(session.odometer);
     }
 
     setSaveToast({
@@ -286,6 +301,9 @@ export default function App() {
       setDistance(0);
       accumulatedDistanceRef.current = 0;
     }
+    // The odometer measures movement, not totals: a manual distance must never
+    // be treated as GPS travel, so its measurement segment starts fresh.
+    odometerRef.current.beginSegment();
     setIsSaved(false);
   };
 
@@ -341,11 +359,7 @@ export default function App() {
       watchIdRef.current = null;
     }
 
-    const options = {
-      enableHighAccuracy: true,
-      maximumAge: 0,
-      timeout: 15000,
-    };
+    const options = { ...GPS_TRACKING_OPTIONS };
 
     try {
       const id = navigator.geolocation.watchPosition(
@@ -355,69 +369,94 @@ export default function App() {
 
           const { latitude, longitude, accuracy, speed } = position.coords;
           const timestamp = position.timestamp || Date.now();
+          const odometer = odometerRef.current;
 
+          // Telemetry always reflects the raw receiver reading, even for fixes
+          // the odometer rejects below.
           setGpsAccuracy(Math.round(accuracy));
-          setTrackingStatus('GPS Connected');
           setLastCoords({ lat: latitude, lon: longitude });
 
-          // Start point capture
-          if (!prevPositionRef.current && !isResuming) {
-            const originCoord = { lat: latitude, lon: longitude };
-            setStartCoords(originCoord);
-            setStartLocation('Resolving start address...');
-            reverseGeocodeCoords(latitude, longitude).then((addr) => {
-              if (addr) setStartLocation(addr);
-            });
-            setEndCoords({ lat: latitude, lon: longitude });
-            setEndLocation('Tracking route live...');
-            setGpsPointsCount(1);
-            setRouteCoordinates([{ lat: latitude, lon: longitude, timestamp, accuracy }]);
-          } else {
-            setEndCoords({ lat: latitude, lon: longitude });
+          // 1. One decision point for every GPS fix (accuracy gate, ordering,
+          //    smoothing, noise floor, plausibility, stale-signal recovery).
+          const verdict = odometer.ingest({
+            lat: latitude,
+            lon: longitude,
+            accuracy,
+            speed,
+            timestamp,
+          });
+
+          if (verdict.reason === 'low-accuracy') {
+            setTrackingStatus('Finding Location');
+            return;
           }
 
-          // Inaccurate fixes (< ±50 m) must never feed the odometer
-          if (accuracy > 50) return;
+          setTrackingStatus('GPS Connected');
 
-          if (prevPositionRef.current) {
-            const verdict = evaluateGpsFix({
-              prev: prevPositionRef.current,
-              next: { lat: latitude, lon: longitude, timestamp },
-              accuracyMeters: accuracy,
-              reportedSpeedMs: speed,
-            });
+          const measuredPosition = verdict.position || { lat: latitude, lon: longitude, timestamp };
 
-            if (verdict.reason === 'implausible') {
-              // Big relocation / teleport: don't bill the passenger for it, but
-              // re-baseline so tracking can continue from here.
-              prevPositionRef.current = { lat: latitude, lon: longitude, timestamp };
-              return;
+          // 2. The first measured fix establishes the start of the trip and
+          //    contributes exactly zero distance.
+          if (verdict.reason === 'baseline' || verdict.reason === 'gap-reset') {
+            if (!startCapturedRef.current && !isResuming) {
+              startCapturedRef.current = true;
+              setStartCoords({ lat: measuredPosition.lat, lon: measuredPosition.lon });
+              setStartLocation('Resolving start address...');
+              reverseGeocodeCoords(measuredPosition.lat, measuredPosition.lon).then((addr) => {
+                if (addr) setStartLocation(addr);
+              });
+              setGpsPointsCount(1);
+              setRouteCoordinates([
+                {
+                  lat: measuredPosition.lat,
+                  lon: measuredPosition.lon,
+                  timestamp,
+                  accuracy,
+                },
+              ]);
+            } else if (verdict.reason === 'gap-reset') {
+              // GPS was lost and came back: keep the route going without
+              // inventing the distance travelled during the outage.
+              setRouteCoordinates((prev) => [
+                ...prev,
+                { lat: measuredPosition.lat, lon: measuredPosition.lon, timestamp, accuracy },
+              ]);
             }
-
-            if (!verdict.accepted) {
-              // Sub-threshold jitter: keep the previous reference point so the
-              // slow, genuine movement still accumulates instead of being lost.
-              return;
-            }
-
-            if (verdict.speedKmh > 0 && verdict.speedKmh <= 180) {
-              setMaxSpeed((prev) => Math.max(prev, verdict.speedKmh));
-            }
-
-            accumulatedDistanceRef.current += verdict.deltaKm;
-            const newDist = accumulatedDistanceRef.current;
-            setDistance(newDist);
-            setInputDistance(newDist.toFixed(2));
-            setGpsPointsCount((c) => c + 1);
-
-            // Record route point
-            setRouteCoordinates((prev) => [
-              ...prev,
-              { lat: latitude, lon: longitude, timestamp, accuracy, speed: verdict.speedKmh },
-            ]);
+            setEndCoords({ lat: measuredPosition.lat, lon: measuredPosition.lon });
+            return;
           }
 
-          prevPositionRef.current = { lat: latitude, lon: longitude, timestamp };
+          if (!verdict.accepted) {
+            // Noise, duplicate, out-of-order or implausible fixes: nothing is
+            // added to the distance, the fare or the route. The odometer keeps
+            // its own reference point, so slow genuine movement still counts.
+            return;
+          }
+
+          if (verdict.speedKmh > 0 && verdict.speedKmh <= 180) {
+            setMaxSpeed((prev) => Math.max(prev, verdict.speedKmh));
+          }
+
+          // 3. Only validated movement reaches the odometer.
+          accumulatedDistanceRef.current += verdict.deltaKm;
+          const newDist = accumulatedDistanceRef.current;
+          setDistance(newDist);
+          setInputDistance(newDist.toFixed(2));
+          setGpsPointsCount((c) => c + 1);
+          setEndCoords({ lat: measuredPosition.lat, lon: measuredPosition.lon });
+
+          // Record the smoothed position so the drawn route matches the
+          // measured distance.
+          setRouteCoordinates((prev) => [
+            ...prev,
+            {
+              lat: measuredPosition.lat,
+              lon: measuredPosition.lon,
+              timestamp,
+              accuracy,
+              speed: verdict.speedKmh,
+            },
+          ]);
         },
         (error) => {
           let message = 'Unable to acquire GPS location.';
@@ -511,7 +550,10 @@ export default function App() {
     setDistance(0.0);
     setInputDistance('0.00');
     accumulatedDistanceRef.current = 0;
-    prevPositionRef.current = null;
+    startCapturedRef.current = false;
+    // A new trip starts with an empty odometer: the first valid fix is the
+    // baseline and adds no artificial distance.
+    odometerRef.current.beginSegment();
     setGpsPointsCount(0);
     setGpsAccuracy(null);
     setLastCoords(null);
@@ -539,6 +581,7 @@ export default function App() {
       routeCoordinates: [],
       maxSpeed: 0,
       gpsPointsCount: 0,
+      odometer: odometerRef.current.snapshot(),
     });
 
     startTrackingEngine(false);
@@ -562,13 +605,14 @@ export default function App() {
     }
 
     // Movement during a pause must not be billed as travelled distance.
-    prevPositionRef.current = null;
+    odometerRef.current.beginSegment();
 
     persistSessionNow({
       isPaused: true,
       pausedAt: now,
       accumulatedActiveMs: accumulatedActiveMs + activeSegment,
       sessionStartedAt: null,
+      odometer: odometerRef.current.snapshot(),
     });
   };
 
@@ -582,8 +626,15 @@ export default function App() {
     trackingActiveRef.current = true;
     setTrackingStatus('GPS Connected');
 
-    prevPositionRef.current = null;
-    persistSessionNow({ isPaused: false, pausedAt: null, sessionStartedAt: now });
+    // Restart the measurement segment: the first fix after the resume becomes
+    // the new baseline, so nothing travelled while paused is charged.
+    odometerRef.current.beginSegment();
+    persistSessionNow({
+      isPaused: false,
+      pausedAt: null,
+      sessionStartedAt: now,
+      odometer: odometerRef.current.snapshot(),
+    });
   };
 
   // --- TRIP ACTION: Stop Trip ---
@@ -609,7 +660,7 @@ export default function App() {
     setTrackingStatus('Trip Stopped');
     setElapsedSeconds(Math.floor(finalActiveMs / 1000));
 
-    prevPositionRef.current = null;
+    odometerRef.current.beginSegment();
     persistSessionNow({
       isTracking: false,
       isPaused: false,
@@ -617,6 +668,7 @@ export default function App() {
       accumulatedActiveMs: finalActiveMs,
       sessionStartedAt: null,
       pausedAt: null,
+      odometer: odometerRef.current.snapshot(),
     });
 
     // Resolve final destination address from last coordinates
@@ -732,7 +784,8 @@ export default function App() {
     setDistance(0);
     setInputDistance('0.00');
     accumulatedDistanceRef.current = 0;
-    prevPositionRef.current = null;
+    startCapturedRef.current = false;
+    odometerRef.current.beginSegment();
     setIsTracking(false);
     setIsPaused(false);
     setTrackingStatus('Ready to Track');

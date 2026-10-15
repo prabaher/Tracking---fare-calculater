@@ -40,17 +40,42 @@ Consequences:
 - Paused time is stored separately and excluded from the active duration.
 - Duration keeps rendering as `HH:MM:SS`.
 
-## 📍 GPS & distance
+## 📍 GPS & distance (anti-drift odometer)
 
-- Uses `navigator.geolocation.watchPosition({ enableHighAccuracy: true })`.
-- Fixes worse than ±50 m accuracy are discarded.
-- Movement is accepted only once it exceeds a threshold derived from the reported accuracy
-  (`min(max(3, accuracy × 0.8), 15)` meters), so a stationary phone cannot slowly manufacture
-  distance. Rejected fixes do **not** move the reference point, so genuine slow movement is
-  still counted on the next accepted fix.
-- Implausible jumps (> 220 km/h) are re-baselined instead of billed as travelled distance.
-- Pausing and resuming resets the reference point, so movement during a pause is not charged.
+All GPS decisions live in one place — `createGpsOdometer()` in `src/utils/geoUtils.js` — and the
+UI only reacts to its verdicts. A fix is evaluated in this order:
+
+| # | Rule | Behaviour |
+| --- | --- | --- |
+| 1 | **Accuracy gate** | A fix worse than **±30 m** (`maxAccuracyMeters`) is rejected outright — never measured with, never used as the reference point. The status shows `Locating...` until a usable fix arrives. |
+| 2 | **Ordering gate** | Duplicate, out-of-order and >5 Hz burst fixes are dropped, so a late fix can never re-measure ground already counted. |
+| 3 | **Position smoothing** | Each candidate is blended with the previous accepted position (`α = 0.5`), which removes most positional jitter before any distance is computed. |
+| 4 | **Movement floor** | `max(accuracy × 0.6 + 3 m, 1.2 km/h × interval, accuracy × 0.06 × interval)`, using the **best accuracy seen in the run** and the real gap between fixes. A ±5 m receiver at 1 Hz needs 6 m; a ±24 m receiver needs ~17 m. |
+| 5 | **Plausibility** | Movement faster than `max(220 km/h, reported speed × 2.5)` is treated as a GPS relocation: it is **not billed**, but the odometer re-baselines so tracking recovers instead of freezing. |
+| 6 | **Stale-signal reset** | After a **60 s** gap the reference point is dropped, so the re-acquired fix starts a new segment and adds **zero** distance instead of a phantom jump. |
+
+Rejected fixes never advance the reference point and never touch the accumulated distance, so the
+fare cannot absorb GPS noise. Because the reference point is *kept* on rejection, genuine slow
+movement still accumulates: it is compared against the last trusted fix until it clears the floor.
+
+Other tracking rules:
+
+- `navigator.geolocation.watchPosition` with `enableHighAccuracy: true`, `maximumAge: 1000`,
+  `timeout: 15000`. A timeout only reports an error — the watch keeps running and the accumulated
+  distance is never reset.
+- The first measured fix of a trip (or after a resume / stale reset) is a **baseline** and
+  contributes exactly zero distance.
+- Pausing, resuming, stopping and resetting all start a fresh measurement segment, so movement
+  during a pause is never charged and the first fix after a resume adds nothing.
 - Fixes that arrive after a stop / pause / reset are ignored.
+- **Fare is always `validated distance × rate`** — computed in a single place from the same
+  distance the meter displays, so no screen can price a different value.
+
+### Verification
+
+`npm run test:logic` drives the real odometer through the drift scenarios (stationary jitter, slow
+systematic drift, noise, genuine travel, slow traffic, signal loss, pause/resume/stop, inaccurate
+fixes, duplicates, teleports) and asserts both the distance **and** the fare stay consistent.
 
 ## 💾 Trip persistence
 
@@ -88,5 +113,5 @@ npm run dev -- --host   # test from a phone on the same network
 npm run build      # production build
 npm run preview    # preview the production build
 npm run lint       # oxlint
-npm run test:logic # dependency-free checks for the timer + GPS maths
+npm run test:logic # dependency-free checks for the timer + GPS + fare maths
 ```

@@ -4,7 +4,6 @@ import {
   Pause,
   Square,
   RotateCcw,
-  Save,
   CheckCircle2,
   Clock,
   IndianRupee,
@@ -61,7 +60,7 @@ Calculation: ${distance.toFixed(2)} km × ₹${rate.toFixed(2)} = ₹${formatCur
     }
   };
 
-  const hasTripData = distance > 0 || elapsedSeconds > 0;
+  const hasTripData = distance > 0 || elapsedSeconds > 0 || isSaved;
 
   return (
     <div className="home-dashboard" aria-label="Home Trip Dashboard">
@@ -109,7 +108,7 @@ Calculation: ${distance.toFixed(2)} km × ₹${rate.toFixed(2)} = ₹${formatCur
               ? 'Trip paused • Timer and distance calculation on hold'
               : 'Tracking your journey in real time with high precision'
             : hasTripData
-            ? 'Trip completed • Save to history or start a new trip'
+            ? 'Trip completed & saved to history • Tap Start Trip for new journey'
             : 'Ready to track • Tap Start Trip below'}
         </p>
 
@@ -128,38 +127,16 @@ Calculation: ${distance.toFixed(2)} km × ₹${rate.toFixed(2)} = ₹${formatCur
               </button>
 
               {hasTripData && (
-                <>
-                  <button
-                    type="button"
-                    id="btn-save-trip"
-                    className={`btn-main-action btn-save-secondary ${isSaved ? 'is-saved' : ''}`}
-                    onClick={onSaveTrip}
-                    disabled={isSaving || isSaved}
-                  >
-                    {isSaved ? (
-                      <>
-                        <CheckCircle2 size={16} />
-                        <span>Saved ✓</span>
-                      </>
-                    ) : (
-                      <>
-                        <Save size={16} />
-                        <span>{isSaving ? 'Saving...' : 'Save Trip'}</span>
-                      </>
-                    )}
-                  </button>
-
-                  <button
-                    type="button"
-                    id="btn-reset-trip"
-                    className="btn-icon-secondary"
-                    onClick={onResetTrip}
-                    title="Reset to new trip"
-                    aria-label="Reset trip"
-                  >
-                    <RotateCcw size={16} />
-                  </button>
-                </>
+                <button
+                  type="button"
+                  id="btn-reset-trip"
+                  className="btn-icon-secondary"
+                  onClick={onResetTrip}
+                  title="Reset to new trip"
+                  aria-label="Reset trip"
+                >
+                  <RotateCcw size={16} />
+                </button>
               )}
             </>
           ) : (

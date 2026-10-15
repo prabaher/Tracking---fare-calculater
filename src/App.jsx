@@ -637,7 +637,7 @@ export default function App() {
     });
   };
 
-  // --- TRIP ACTION: Stop Trip ---
+  // --- TRIP ACTION: Stop Trip (Saves directly to history) ---
   const handleStopTrip = () => {
     if (!isTracking) return;
     const now = Date.now();
@@ -651,6 +651,8 @@ export default function App() {
     if (!isPaused && sessionStartedAt) {
       finalActiveMs += Math.max(0, now - sessionStartedAt);
     }
+    const finalSecs = Math.floor(finalActiveMs / 1000);
+
     setAccumulatedActiveMs(finalActiveMs);
     setSessionStartedAt(null);
     setTripEndedAt(now);
@@ -658,25 +660,87 @@ export default function App() {
     setIsPaused(false);
     trackingActiveRef.current = false;
     setTrackingStatus('Trip Stopped');
-    setElapsedSeconds(Math.floor(finalActiveMs / 1000));
+    setElapsedSeconds(finalSecs);
 
     odometerRef.current.beginSegment();
-    persistSessionNow({
-      isTracking: false,
-      isPaused: false,
-      tripEndedAt: now,
-      accumulatedActiveMs: finalActiveMs,
-      sessionStartedAt: null,
-      pausedAt: null,
-      odometer: odometerRef.current.snapshot(),
-    });
+    clearActiveSession();
 
-    // Resolve final destination address from last coordinates
-    if (lastCoords) {
-      setEndCoords({ lat: lastCoords.lat, lon: lastCoords.lon });
+    // Determine final coordinates and provisional addresses
+    const finalEndCoords = lastCoords ? { lat: lastCoords.lat, lon: lastCoords.lon } : endCoords;
+    if (finalEndCoords) {
+      setEndCoords(finalEndCoords);
+    }
+
+    let initialStart = (startLocation || '').trim();
+    if (!initialStart || initialStart.includes('...')) {
+      initialStart = startCoords ? `${startCoords.lat.toFixed(4)}, ${startCoords.lon.toFixed(4)}` : 'Starting Point';
+    }
+
+    let initialEnd = (endLocation || '').trim();
+    if (!initialEnd || initialEnd.includes('...') || initialEnd.includes('live') || initialEnd.includes('Tracking')) {
+      initialEnd = finalEndCoords ? `${finalEndCoords.lat.toFixed(4)}, ${finalEndCoords.lon.toFixed(4)}` : 'Destination';
+    }
+
+    const tripDate = new Date(now);
+    const avgSpd =
+      finalSecs > 10 && distance > 0.05 ? computeAverageSpeedKmh(distance, finalSecs) : 0;
+
+    const tripRecordId = Date.now();
+    const tripRecord = {
+      id: tripRecordId,
+      date: tripDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+      dateGroup: tripDate.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
+      time: tripStartedAt
+        ? new Date(tripStartedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false })
+        : tripDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false }),
+      endTime: tripDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false }),
+      startLocation: initialStart,
+      endLocation: initialEnd,
+      distance: `${distance.toFixed(2)} km`,
+      distanceNum: distance,
+      rate: `₹${rate.toFixed(2)}/km`,
+      rateNum: rate,
+      amount: `₹${formatCurrency(totalFare)}`,
+      amountNum: totalFare,
+      duration: formatDuration(finalSecs),
+      durationSeconds: finalSecs,
+      avgSpeed: avgSpd,
+      maxSpeed: Math.round(maxSpeed),
+      startCoords,
+      endCoords: finalEndCoords,
+      routeCoordinates: compactRouteCoordinates(routeCoordinates),
+      trackingMode: routeCoordinates.length > 0 || isTracking ? 'GPS Tracking' : 'Manual Entry',
+    };
+
+    setSavedTrips((prev) => [tripRecord, ...prev]);
+    setIsSaved(true);
+
+    setSaveToast({
+      type: 'success',
+      message: `✓ Saved to History: ${distance.toFixed(2)} km • ₹${formatCurrency(totalFare)}`,
+    });
+    setTimeout(() => setSaveToast(null), 4000);
+
+    // Asynchronously refine start and end locations via reverse geocoding
+    if (startCoords && (!startLocation || startLocation.includes('...') || startLocation === 'Starting Point')) {
+      reverseGeocodeCoords(startCoords.lat, startCoords.lon).then((resolvedStart) => {
+        if (resolvedStart) {
+          setStartLocation(resolvedStart);
+          setSavedTrips((prev) =>
+            prev.map((t) => (t.id === tripRecordId ? { ...t, startLocation: resolvedStart } : t))
+          );
+        }
+      });
+    }
+
+    if (finalEndCoords) {
       setEndLocation('Resolving destination...');
-      reverseGeocodeCoords(lastCoords.lat, lastCoords.lon).then((addr) => {
-        if (addr) setEndLocation(addr);
+      reverseGeocodeCoords(finalEndCoords.lat, finalEndCoords.lon).then((resolvedEnd) => {
+        const bestEnd = resolvedEnd || (initialEnd !== 'Destination' ? initialEnd : 'Trip Destination');
+        setEndLocation(bestEnd);
+        setSavedTrips((prev) =>
+          prev.map((t) => (t.id === tripRecordId ? { ...t, endLocation: bestEnd } : t))
+        );
       });
     } else if (!endLocation || endLocation.includes('live') || endLocation.includes('Tracking')) {
       setEndLocation('Trip Destination');
@@ -849,9 +913,9 @@ export default function App() {
         };
       case 'Trip Stopped':
         return {
-          label: 'Trip Stopped',
-          className: 'badge-stopped',
-          dotClass: 'dot-stopped',
+          label: isSaved ? 'Trip Saved' : 'Trip Stopped',
+          className: isSaved ? 'badge-connected' : 'badge-stopped',
+          dotClass: isSaved ? 'dot-pulse-green' : 'dot-stopped',
         };
       case 'Permission Denied':
       case 'GPS Unavailable':
